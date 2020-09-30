@@ -243,22 +243,24 @@ public class SearchService {
 
         // 2. 构建排序条件：1-价格升序 2-价格降序 3-新品降序 4-销量降序
         Integer sort = paramVo.getSort();
-        switch (sort) {
-            case 1:
-                sourceBuilder.sort("price", SortOrder.ASC);
-                break;
-            case 2:
-                sourceBuilder.sort("price", SortOrder.DESC);
-                break;
-            case 3:
-                sourceBuilder.sort("createTime", SortOrder.DESC);
-                break;
-            case 4:
-                sourceBuilder.sort("sales", SortOrder.DESC);
-                break;
-            default:
-                sourceBuilder.sort("_score", SortOrder.DESC);
-                break;
+        if (sort != null) {
+            switch (sort) {
+                case 1:
+                    sourceBuilder.sort("price", SortOrder.ASC);
+                    break;
+                case 2:
+                    sourceBuilder.sort("price", SortOrder.DESC);
+                    break;
+                case 3:
+                    sourceBuilder.sort("createTime", SortOrder.DESC);
+                    break;
+                case 4:
+                    sourceBuilder.sort("sales", SortOrder.DESC);
+                    break;
+                default:
+                    sourceBuilder.sort("_score", SortOrder.DESC);
+                    break;
+            }
         }
 
         // 3. 构建分页条件
