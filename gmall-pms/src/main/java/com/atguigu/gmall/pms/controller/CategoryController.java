@@ -1,5 +1,6 @@
 package com.atguigu.gmall.pms.controller;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import io.swagger.annotations.Api;
@@ -33,6 +34,18 @@ public class CategoryController {
 
     @Autowired
     private CategoryService categoryService;
+
+    @GetMapping("all/{cid3}")
+    public ResponseVo<List<CategoryEntity>> queryCategoriesByCid3(@PathVariable("cid3")Long cid3){
+        List<CategoryEntity> categoryEntities = this.categoryService.queryCategoriesByCid3(cid3);
+        return ResponseVo.ok(categoryEntities);
+    }
+
+    @GetMapping("parent/withsub/{pid}")
+    public ResponseVo<List<CategoryEntity>> queryCategoryLvl2WithSubsByPid(@PathVariable("pid")Long pid){
+        List<CategoryEntity> categoryEntities = this.categoryService.queryCategoryLvl2WithSubsByPid(pid);
+        return ResponseVo.ok(categoryEntities);
+    }
 
     @GetMapping("parent/{parentId}")
     public ResponseVo<List<CategoryEntity>> queryCategoriesByPid(@PathVariable("parentId")Long pid){
