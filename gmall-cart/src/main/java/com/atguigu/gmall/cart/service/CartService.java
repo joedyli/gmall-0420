@@ -51,6 +51,8 @@ public class CartService {
 
     private static final String KEY_PREFIX = "cart:info:";
 
+    private static final String PRICE_PREFIX = "cart:price:";
+
     public void addCart(Cart cart) {
         // 获取登录信息
         String userId = getUserId();
@@ -101,7 +103,12 @@ public class CartService {
             cart.setSaleAttrs(JSON.toJSONString(listResponseVo1.getData()));
 
             // 新增到mysql
-            this.cartAsyncService.insertCart(cart);
+            this.cartAsyncService.insertCart(userId, cart);
+
+            // 添加实时价格缓存到redis
+            if (skuEntity != null){
+                this.redisTemplate.opsForValue().set(PRICE_PREFIX + skuIdString, skuEntity.getPrice().toString());
+            }
         }
         hashOps.put(skuIdString, JSON.toJSONString(cart));
     }
@@ -173,7 +180,11 @@ public class CartService {
         List<Object> cartJsons = unloginHashOps.values();
         List<Cart> unloginCarts = null;
         if (!CollectionUtils.isEmpty(cartJsons)){
-            unloginCarts = cartJsons.stream().map(cartJson -> JSON.parseObject(cartJson.toString(), Cart.class)).collect(Collectors.toList());
+            unloginCarts = cartJsons.stream().map(cartJson -> {
+                Cart cart = JSON.parseObject(cartJson.toString(), Cart.class);
+                cart.setCurrentPrice(new BigDecimal(this.redisTemplate.opsForValue().get(PRICE_PREFIX + cart.getSkuId())));
+                return cart;
+            }).collect(Collectors.toList());
         }
 
         // 2.获取userId，判断是否登录。未登录则直接返回未登录的购物车
@@ -200,7 +211,7 @@ public class CartService {
                 } else {
                     // 新增购物车记录
                     cart.setUserId(userId.toString());
-                    cartAsyncService.insertCart(cart);
+                    cartAsyncService.insertCart(userId.toString(), cart);
                 }
                 loginHashOps.put(cart.getSkuId().toString(), JSON.toJSONString(cart));
             });
@@ -213,7 +224,11 @@ public class CartService {
         // 5.以userId获取登录状态的购物车
         List<Object> loginCartJsons = loginHashOps.values();
         if (!CollectionUtils.isEmpty(loginCartJsons)){
-            return loginCartJsons.stream().map(cartJson -> JSON.parseObject(cartJson.toString(), Cart.class)).collect(Collectors.toList());
+            return loginCartJsons.stream().map(cartJson -> {
+                Cart cart = JSON.parseObject(cartJson.toString(), Cart.class);
+                cart.setCurrentPrice(new BigDecimal(this.redisTemplate.opsForValue().get(PRICE_PREFIX + cart.getSkuId())));
+                return cart;
+            }).collect(Collectors.toList());
         }
         return null;
     }
@@ -234,6 +249,18 @@ public class CartService {
             // 写回数据库
             hashOps.put(cart.getSkuId().toString(), JSON.toJSONString(cart));
             this.cartAsyncService.updateCart(userId, cart);
+        }
+    }
+
+    public void deleteCartBySkuId(Long skuId) {
+        String userId = this.getUserId();
+
+        BoundHashOperations<String, Object, Object> hashOps = this.redisTemplate.boundHashOps(KEY_PREFIX + userId);
+
+        if (hashOps.hasKey(skuId.toString())){
+            hashOps.delete(skuId.toString());
+
+            this.cartAsyncService.deleteCartByUserIdAndSkuId(userId, skuId);
         }
     }
 }

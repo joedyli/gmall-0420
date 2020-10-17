@@ -53,6 +53,13 @@ public class CartController {
         return ResponseVo.ok();
     }
 
+    @PostMapping("deleteCart")
+    @ResponseBody
+    public ResponseVo deleteCartBySkuId(@RequestParam("skuId")Long skuId){
+        this.cartService.deleteCartBySkuId(skuId);
+        return ResponseVo.ok();
+    }
+
 //    @Autowired
 //    private LoginInterceptor loginInterceptor;
 
