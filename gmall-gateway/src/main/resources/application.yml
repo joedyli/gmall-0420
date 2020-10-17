@@ -50,6 +50,10 @@ spring:
           uri: lb://auth-service
           predicates:
             - Host=sso.gmall.com
+        - id: cart-route
+          uri: lb://cart-service
+          predicates:
+            - Host=cart.gmall.com
 auth:
   jwt:
     pubKeyPath: D:\project-0420\rsa\rsa.pub
