@@ -60,6 +60,13 @@ public class CartController {
         return ResponseVo.ok();
     }
 
+    @GetMapping("checked/{userId}")
+    @ResponseBody
+    public ResponseVo<List<Cart>> queryCheckedCartsByUserId(@PathVariable("userId")Long userId){
+        List<Cart> carts = this.cartService.queryCheckedCartsByUserId(userId);
+        return ResponseVo.ok(carts);
+    }
+
 //    @Autowired
 //    private LoginInterceptor loginInterceptor;
 

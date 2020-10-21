@@ -1,4 +1,4 @@
-package com.atguigu.gmall.cart.pojo;
+package com.atguigu.gmall.common.bean;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
